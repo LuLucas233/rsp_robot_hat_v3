@@ -26,6 +26,7 @@
 import sys
 import time
 from rsp_robot_hat_v3 import buzzer
+from rsp_robot_hat_v3 import pwm_servo
 
 
 def test_buzzer():
@@ -40,7 +41,22 @@ def test_buzzer():
             break
 
 
-test_list = dict(test_buzzer=test_buzzer)
+def test_pwm_servo():
+    while True:
+        try:
+            pwm_servo.servo1.set_position(1000, 1000)
+            pwm_servo.servo2.set_position(2000, 1000)
+            time.sleep(1.5)
+            pwm_servo.servo1.set_position(2000, 1000)
+            pwm_servo.servo2.set_position(1000, 1000)
+            time.sleep(1.5)
+        except KeyboardInterrupt:
+            pwm_servo.servo1.set_position(1500, 1000)
+            pwm_servo.servo2.set_position(1500, 1000)
+            break
+
+
+test_list = dict(test_buzzer=test_buzzer, test_pwm_servo=test_pwm_servo)
 
 if __name__ == "__main__":
     print("test", sys.argv)

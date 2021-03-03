@@ -20,6 +20,7 @@
 # notes           :
 # ==============================================================================
 
+from . import pwm_servo
 from . import serial_servo
 from . import buzzer
 
