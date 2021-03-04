@@ -21,9 +21,9 @@
 # ==============================================================================
 
 import time
-import serial
 import struct
-from threading import Lock
+import threading
+import serial
 from ._common import GPIO
 
 FRAME_HEADER = 0x55
@@ -59,7 +59,7 @@ LED_ERROR_READ = 36
 _rx_pin = 7
 _tx_pin = 13
 _serial_handle = serial.Serial("/dev/ttyAMA0", 115200)  # 初始化串口， 波特率为115200
-lock = Lock()
+lock = threading.Lock()
 
 
 def port_init():

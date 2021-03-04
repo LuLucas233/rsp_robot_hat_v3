@@ -39,12 +39,8 @@ async def _run_action_set(act_path, repeat=1, lock_servos=None):
         raise FileNotFoundError(act_path)
 
     # 从动作组文件中取出动作数据
-    ag = sql.connect(act_path)
-    cu = ag.cursor()
-    cu.execute("select * from ActionGroup")
-    action_set = cu.fetchall()
-    if not action_set:
-        return
+    with sql.connect(act_path) as ag:
+        action_set = ag.execute("select * from ActionGroup").fetchall()
 
     # 对动作数据做些处理
     # 将所有动作里面被lock的舵机的角度设为指定lock的角度
