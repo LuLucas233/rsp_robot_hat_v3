@@ -15,18 +15,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # title           :pwm_servo.py
-# author          :Hiwonder
+# author          :Hiwonder, LuYongping(Lucas)
 # date            :20210205
-# notes           : request pigpio library
+# notes           :requeot pigpio library
 # ==============================================================================
 
+import time
 import threading
-import pigpio
+from ._common import _pi
 
 
 class PwmServo:
-    def __init__(self, pi, pin, min_width=50, max_width=2500, deviation=0):
-        self.pi = pi
+    def __init__(self, pin, min_width=50, max_width=2500, deviation=0):
         self.pin = pin
 
         self.min_width = min_width
@@ -37,8 +37,8 @@ class PwmServo:
         self.pos_set = self.pos_cur
         self.pos_inc = 0
         self.lock = threading.Lock()
-        self.update_timer = threading.Timer(0.02, self.update_pos_task)
-        self.update_timer.start()
+        self.thread = threading.Thread(target=self.update_pos_task, daemon=True)
+        self.thread.start()
 
     def get_position(self):
         """
@@ -61,7 +61,7 @@ class PwmServo:
             with self.lock:
                 self.pos_set = new_pos
                 self.pos_cur = new_pos
-                self.pi.set_servo_pulsewidth(self.pin, self.pos_cur + self.deviation)
+                _pi.set_servo_pulsewidth(self.pin, self.pos_cur + self.deviation)
         else:
             duration = 20 if duration < 20 else duration
             duration = 30000 if duration > 30000 else duration
@@ -72,25 +72,24 @@ class PwmServo:
                 self.pos_inc = (self.pos_cur - new_pos) / inc_times
 
     def update_pos_task(self):
-        """
-        :return:
-        """
-        self.update_timer = threading.Timer(0.02, self.update_pos_task)
-        self.update_timer.start()
-        with self.lock:
-            self.inc_times -= 1
-            if self.inc_times > 0:
-                pos_cur = self.pos_set + int(self.pos_inc * self.inc_times)
-                self.pi.set_servo_pulsewidth(self.pin, pos_cur + self.deviation)
-                self.pos_cur = pos_cur
-            elif self.inc_times == 0:
-                self.pi.set_servo_pulsewidth(self.pin, self.pos_set + self.deviation)
-                self.pos_cur = self.pos_set
-            else:
-                self.inc_times = -1
+        while True:
+            with self.lock:
+                self.inc_times -= 1
+                if self.inc_times > 0:
+                    pos_cur = self.pos_set + int(self.pos_inc * self.inc_times)
+                    _pi.set_servo_pulsewidth(self.pin, pos_cur + self.deviation)
+                    self.pos_cur = pos_cur
+                elif self.inc_times == 0:
+                    _pi.set_servo_pulsewidth(self.pin, self.pos_set + self.deviation)
+                    self.pos_cur = self.pos_set
+                else:
+                    self.inc_times = -1
+            time.sleep(0.02)
 
     def set_deviation(self, new_deviation=0):
         """
+        set deviation
+
         :param new_deviation:
         :return:
         """
@@ -106,6 +105,5 @@ class PwmServo:
         return self.deviation
 
 
-_pi = pigpio.pi()
-servo1 = PwmServo(_pi, 12)
-servo2 = PwmServo(_pi, 13)
+servo1 = PwmServo(12)
+servo2 = PwmServo(13)

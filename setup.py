@@ -20,7 +20,7 @@
 # notes           :
 # ==============================================================================
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(name='rsp_robot_hat_v3',
       version='1.0',
@@ -31,9 +31,11 @@ setup(name='rsp_robot_hat_v3',
       author="Hiwonder",
       author_email="support@hiwonder.com",
 
+      python_requires=">=3.6",
+      install_requires=['pigpio', 'RPi.GPIO', 'pyserial'],
+
       include_package_data=True,
       zip_safe=False,
       packages=["rsp_robot_hat_v3", ],
       package_dir={"rsp_robot_hat_v3": "./src"},
-      install_requires=[],
       )

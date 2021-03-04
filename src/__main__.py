@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # title           :__main__.py
-# author          :Hiwonder
+# author          :Hiwonder, LuYongping(Lucas)
 # date            :20210205
 # notes           :
 # ==============================================================================
@@ -25,11 +25,16 @@
 
 import sys
 import time
-from rsp_robot_hat_v3 import buzzer
-from rsp_robot_hat_v3 import pwm_servo
+from . import buzzer
+from . import pwm_servo
+from . import serial_servo
 
 
-def test_buzzer():
+def set_buzzer(args):
+    buzzer.set_state(int(args[1]))
+
+
+def test_buzzer(args):
     while True:
         try:
             buzzer.set_state(1)
@@ -41,7 +46,7 @@ def test_buzzer():
             break
 
 
-def test_pwm_servo():
+def test_pwm_servo(args):
     while True:
         try:
             pwm_servo.servo1.set_position(1000, 1000)
@@ -51,14 +56,35 @@ def test_pwm_servo():
             pwm_servo.servo2.set_position(1000, 1000)
             time.sleep(1.5)
         except KeyboardInterrupt:
-            pwm_servo.servo1.set_position(1500, 1000)
-            pwm_servo.servo2.set_position(1500, 1000)
             break
 
 
-test_list = dict(test_buzzer=test_buzzer, test_pwm_servo=test_pwm_servo)
+def set_pwm_servo(args):
+    id_, pos, dur = list(map(int, args[1:]))
+    servo = [pwm_servo.servo1, pwm_servo.servo2][id_ - 1]
+    servo.set_position(pos, dur)
+    time.sleep(dur / 1000 + 0.1)
+
+
+def test_serial_servo(args):
+    while True:
+        try:
+            serial_servo.set_position(1, 250, 1000)
+            serial_servo.set_position(2, 750, 1000)
+            time.sleep(1.5)
+            serial_servo.set_position(1, 750, 1000)
+            serial_servo.set_position(2, 250, 1000)
+            time.sleep(1.5)
+        except KeyboardInterrupt:
+            break
+
+
+test_list = dict(set_buzzer=set_buzzer,
+                 test_buzzer=test_buzzer,
+                 set_pwm_servo=set_pwm_servo,
+                 test_pwm_servo=test_pwm_servo,
+                 test_serial_servo=test_serial_servo)
 
 if __name__ == "__main__":
-    print("test", sys.argv)
-    if len(sys.argv) == 2 and sys.argv[1] in test_list:
-        test_list[sys.argv[1]]()
+    if len(sys.argv) >= 2 and sys.argv[1] in test_list:
+        test_list[sys.argv[1]](sys.argv[1:])

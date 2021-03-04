@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # title           :misc.py
-# author          :Hiwonder
+# author          :Hiwonder, LuYongping(Lucas)
 # date            :20210205
 # notes           :
 # ==============================================================================
@@ -25,8 +25,8 @@ def val_map(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
-def empty_func(img=None):
-    return img
+def empty_func(args=None):
+    return args
 
 
 def set_bounds(x, x_min, x_max):

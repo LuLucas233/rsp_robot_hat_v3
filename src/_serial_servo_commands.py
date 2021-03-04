@@ -15,16 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # title           :serial_servo_commands.py
-# author          :Hiwonder
+# author          :Hiwonder, LuYongping(Lucas)
 # date            :20210205
 # notes           :
 # ==============================================================================
 
 import time
 import serial
-import RPi.GPIO as GPIO
 import struct
 from threading import Lock
+from ._common import GPIO
 
 FRAME_HEADER = 0x55
 MOVE_TIME_WRITE = 1
@@ -56,37 +56,35 @@ LED_CTRL_READ = 34
 LED_ERROR_WRITE = 35
 LED_ERROR_READ = 36
 
-__rx_pin = 7
-__tx_pin = 13
-__serial_handle = serial.Serial("/dev/ttyAMA0", 115200)  # 初始化串口， 波特率为115200
+_rx_pin = 7
+_tx_pin = 13
+_serial_handle = serial.Serial("/dev/ttyAMA0", 115200)  # 初始化串口， 波特率为115200
 lock = Lock()
 
 
 def port_init():
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(__rx_pin, GPIO.OUT)  # 配置RX_CON 即 GPIO17 为输出
-    GPIO.output(__rx_pin, 0)
-    GPIO.setup(__tx_pin, GPIO.OUT)  # 配置TX_CON 即 GPIO27 为输出
-    GPIO.output(__tx_pin, 1)
+    GPIO.setup(_rx_pin, GPIO.OUT)  # 配置RX_CON 即 GPIO17 为输出
+    GPIO.output(_rx_pin, 0)
+    GPIO.setup(_tx_pin, GPIO.OUT)  # 配置TX_CON 即 GPIO27 为输出
+    GPIO.output(_tx_pin, 1)
 
 
 def port_as_write():  # 配置单线串口为输出
-    GPIO.output(__rx_pin, 0)  # 拉低RX_CON 即 GPIO17
-    GPIO.output(__tx_pin, 1)  # 拉高TX_CON 即 GPIO27
+    GPIO.output(_rx_pin, 0)  # 拉低RX_CON 即 GPIO17
+    GPIO.output(_tx_pin, 1)  # 拉高TX_CON 即 GPIO27
 
 
 def port_as_read():  # 配置单线串口为输入
-    GPIO.output(__tx_pin, 0)  # 拉低TX_CON 即 GPIO27
-    GPIO.output(__rx_pin, 1)  # 拉高RX_CON 即 GPIO17
+    GPIO.output(_tx_pin, 0)  # 拉低TX_CON 即 GPIO27
+    GPIO.output(_rx_pin, 1)  # 拉高RX_CON 即 GPIO17
 
 
 def port_reset():
     time.sleep(0.1)
-    __serial_handle.close()
-    GPIO.output(__rx_pin, 1)
-    GPIO.output(__tx_pin, 1)
-    __serial_handle.open()
+    _serial_handle.close()
+    GPIO.output(_rx_pin, 1)
+    GPIO.output(_tx_pin, 1)
+    _serial_handle.open()
     time.sleep(0.1)
 
 
@@ -111,7 +109,7 @@ def write_cmd(id_, cmd, params=None):
         buf = [0x55, 0x55, id_, len(params_buf) + 3 if params else 3, cmd]
         buf.extend(params_buf)
         buf.append(255 - (sum(buf[2:]) % 256))
-        __serial_handle.write(bytes(buf))  # write
+        _serial_handle.write(bytes(buf))  # write
 
 
 def send_read_cmd(id_=None, cmd=None):
@@ -124,26 +122,26 @@ def send_read_cmd(id_=None, cmd=None):
     port_as_write()
     buf = [0x55, 0x55, id_, 3, cmd, 0x00]
     buf[-1](255 - (sum(buf[2:-1]) % 256))
-    __serial_handle.write(buf)  # 发送
+    _serial_handle.write(buf)  # 发送
     time.sleep(0.00034)
 
 
-def __read_msg_base(cmd):
+def _read_msg_base(cmd):
     """
     # 获取指定读取命令的数据
     :param cmd: 读取命令
     :return: 数据
     """
-    __serial_handle.flushInput()  # 清空接收缓存
+    _serial_handle.flushInput()  # 清空接收缓存
     port_as_read()  # 将单线串口配置为输入
     time.sleep(0.005)  # 稍作延时，等待接收完毕
-    recv_len = __serial_handle.inWaiting()  # 获取接收缓存中的字节数
+    recv_len = _serial_handle.inWaiting()  # 获取接收缓存中的字节数
     if recv_len < 5:
         return None
     # for i in recv_data:
     #     print('%#x' %ord(i))
 
-    recv_data = __serial_handle.read(recv_len)  # 读取接收到的数据
+    recv_data = _serial_handle.read(recv_len)  # 读取接收到的数据
     cmd_len = recv_data[3]
     if recv_data[0] != FRAME_HEADER or recv_data[1] != FRAME_HEADER or cmd != recv_data[3]:
         return None
@@ -159,6 +157,6 @@ def read_msg(id_, cmd, retry=50):
     for i in range(retry):
         with lock:
             send_read_cmd(id_, cmd)
-            msg = __read_msg_base(cmd)
+            msg = _read_msg_base(cmd)
             if msg is not None:
                 return msg

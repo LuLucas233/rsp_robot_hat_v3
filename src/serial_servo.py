@@ -1,6 +1,30 @@
+# This file is part of rsp_robot_hat_v3.
+# Copyright (C) 2021 Hiwonder Ltd. <support@hiwonder.com>
+#
+# rsp_robot_hat_v3 is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# rsp_robot_hat_v3 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# title           :serial_servo.py
+# author          :Hiwonder, LuYongping(Lucas)
+# date            :20210205
+# notes           :
+# ==============================================================================
+
 import time
 from .misc import set_bounds
-from . import serial_servo_commands as ssc
+from . import _serial_servo_commands as _ssc
+
+_ssc.port_init()
 
 
 def set_id(new_id, old_id=0xFE):
@@ -10,7 +34,7 @@ def set_id(new_id, old_id=0xFE):
     :param old_id:
     :return:
     """
-    ssc.write_cmd(old_id, ssc.ID_WRITE, new_id)
+    _ssc.write_cmd(old_id, _ssc.ID_WRITE, new_id)
 
 
 def get_id(id_=None, retry=50):
@@ -21,19 +45,20 @@ def get_id(id_=None, retry=50):
     :return: 返回舵机id
     """
     id_ = id_ if id_ else 0xFE
-    return ssc.read_msg(id_, ssc.ID_READ, retry)
+    return _ssc.read_msg(id_, _ssc.ID_READ, retry)
 
 
 def set_position(id_, position, duration):
     """
     驱动串口舵机转到指定位置
+
     :param id_: 要驱动的舵机id
     :param position: 位置
     :param duration: 转动需要的时间
     """
     position = set_bounds(position, 0, 1000)
     duration = set_bounds(duration, 0, 30000)
-    ssc.write_cmd(id_, ssc.MOVE_TIME_WRITE, [position, duration])
+    _ssc.write_cmd(id_, _ssc.MOVE_TIME_WRITE, [position, duration])
 
 
 def stop(id_=None):
@@ -42,7 +67,7 @@ def stop(id_=None):
     :param id_:
     :return:
     """
-    ssc.write_cmd(id_, ssc.MOVE_STOP)
+    _ssc.write_cmd(id_, _ssc.MOVE_STOP)
 
 
 def set_deviation(id_, d=0):
@@ -51,7 +76,7 @@ def set_deviation(id_, d=0):
     :param id_: 舵机id
     :param d:  偏差
     """
-    ssc.write_cmd(id_, ssc.ANGLE_OFFSET_ADJUST, d)
+    _ssc.write_cmd(id_, _ssc.ANGLE_OFFSET_ADJUST, d)
 
 
 def save_deviation(id_):
@@ -59,7 +84,7 @@ def save_deviation(id_):
     配置偏差，掉电保护
     :param id_: 舵机id
     """
-    ssc.write_cmd(id_, ssc.ANGLE_OFFSET_WRITE)
+    _ssc.write_cmd(id_, _ssc.ANGLE_OFFSET_WRITE)
 
 
 def get_deviation(id_, retry=50):
@@ -69,7 +94,7 @@ def get_deviation(id_, retry=50):
     :param retry: 重试次数
     :return:
     """
-    return ssc.read_msg(id_, ssc.ANGLE_OFFSET_READ)
+    return _ssc.read_msg(id_, _ssc.ANGLE_OFFSET_READ)
 
 
 def set_position_limit(id_, low, high):
@@ -80,7 +105,7 @@ def set_position_limit(id_, low, high):
     :param high:
     :return:
     """
-    ssc.write_cmd(id_, ssc.ANGLE_LIMIT_WRITE, [low, high])
+    _ssc.write_cmd(id_, _ssc.ANGLE_LIMIT_WRITE, [low, high])
 
 
 def get_position_limit(id_, retry=50):
@@ -90,7 +115,7 @@ def get_position_limit(id_, retry=50):
     :param retry:
     :return: 返回元祖 0： 低位  1： 高位
     """
-    return ssc.read_msg(ssc.ANGLE_LIMIT_READ, retry)
+    return _ssc.read_msg(_ssc.ANGLE_LIMIT_READ, retry)
 
 
 def set_vin_limit(id_, low, high):
@@ -101,7 +126,7 @@ def set_vin_limit(id_, low, high):
     :param high:
     :return:
     """
-    ssc.write_cmd(id_, ssc.VIN_LIMIT_WRITE, [low, high])
+    _ssc.write_cmd(id_, _ssc.VIN_LIMIT_WRITE, [low, high])
 
 
 def get_vin_limit(id_, retry=50):
@@ -110,7 +135,7 @@ def get_vin_limit(id_, retry=50):
     :param id_:
     :return: 返回元祖 0： 低位  1： 高位
     """
-    return ssc.read_msg(id_, ssc.VIN_LIMIT_READ, retry)
+    return _ssc.read_msg(id_, _ssc.VIN_LIMIT_READ, retry)
 
 
 def set_thermal_limit(id_, m_temp):
@@ -120,7 +145,7 @@ def set_thermal_limit(id_, m_temp):
     :param m_temp:
     :return:
     """
-    ssc.write_cmd(ssc.TEMP_MAX_LIMIT_WRITE, m_temp)
+    _ssc.write_cmd(_ssc.TEMP_MAX_LIMIT_WRITE, m_temp)
 
 
 def get_thermal_limit(id_, retry=50):
@@ -130,7 +155,7 @@ def get_thermal_limit(id_, retry=50):
     :param retry:
     :return:
     """
-    return ssc.read_msg(id_, ssc.TEMP_MAX_LIMIT_READ, retry)
+    return _ssc.read_msg(id_, _ssc.TEMP_MAX_LIMIT_READ, retry)
 
 
 def get_position(id_, retry=50):
@@ -140,7 +165,7 @@ def get_position(id_, retry=50):
     :param retry:
     :return:
     """
-    return ssc.read_msg(id_, ssc.POS_READ, retry)
+    return _ssc.read_msg(id_, _ssc.POS_READ, retry)
 
 
 def get_temperature(id_, retry=50):
@@ -150,7 +175,7 @@ def get_temperature(id_, retry=50):
     :param retry:
     :return:
     """
-    return ssc.read_msg(id_, ssc.TEMP_READ, retry)
+    return _ssc.read_msg(id_, _ssc.TEMP_READ, retry)
 
 
 def get_vin(id_, retry=50):
@@ -160,7 +185,7 @@ def get_vin(id_, retry=50):
     :param retry:
     :return:
     """
-    return ssc.read_msg(id_, ssc.VIN_READ, retry)
+    return _ssc.read_msg(id_, _ssc.VIN_READ, retry)
 
 
 def reset_all(id_):
@@ -171,7 +196,7 @@ def reset_all(id_):
     """
     set_deviation(id_, 0)  # 清零偏差
     time.sleep(0.1)
-    ssc.write_cmd(id_, ssc.MOVE_TIME_WRITE, [500, 1000])  # 中位
+    _ssc.write_cmd(id_, _ssc.MOVE_TIME_WRITE, [500, 1000])  # 中位
 
 
 def unload(id_):
@@ -180,7 +205,7 @@ def unload(id_):
     :param id_:
     :return:
     """
-    ssc.write_cmd(id_, ssc.LOAD_OR_UNLOAD_WRITE, 0)
+    _ssc.write_cmd(id_, _ssc.LOAD_OR_UNLOAD_WRITE, 0)
 
 
 def get_load_state(id_, retry=50):
@@ -190,4 +215,4 @@ def get_load_state(id_, retry=50):
     :param retry:
     :return:
     """
-    return ssc.read_msg(id_, ssc.LOAD_OR_UNLOAD_READ, retry)
+    return _ssc.read_msg(id_, _ssc.LOAD_OR_UNLOAD_READ, retry)

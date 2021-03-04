@@ -15,13 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # title           :__init__.py
-# author          :Hiwonder
+# author          :Hiwonder, LuYongping(Lucas)
 # date            :20210205
 # notes           :
 # ==============================================================================
 
+from . import action_set
+from . import buzzer
+from . import misc
+from . import pid
 from . import pwm_servo
 from . import serial_servo
-from . import buzzer
 
-__all__ = ['serial_servo', 'pwm_servo', 'misc', 'buzzer']
+__all__ = ['serial_servo', 'pwm_servo', 'misc', 'buzzer', 'pid', 'action_set']

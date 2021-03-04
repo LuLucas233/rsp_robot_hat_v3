@@ -15,21 +15,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # title           :buzzer.py
-# author          :Hiwonder
+# author          :Hiwonder, LuYongping(Lucas)
 # date            :20210205
 # notes           :
 # ==============================================================================
 
 
-import RPi.GPIO as GPIO
-
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)
+from ._common import GPIO
 
 
 def set_state(new_state):
-    GPIO.setup(31, GPIO.OUT)
     GPIO.output(31, new_state)
 
 
+GPIO.setup(31, GPIO.OUT)
 set_state(0)
