@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# title           :serial_servo_commands.py
+# title           :_serial_servo_commands.py
 # author          :Hiwonder, LuYongping(Lucas)
 # date            :20210205
 # notes           :

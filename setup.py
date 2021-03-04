@@ -22,10 +22,10 @@
 
 from setuptools import setup
 
-setup(name='rsp_robot_hat_v3',
+setup(name='hw_rsp_hat_v3',
       version='1.0',
       keywords=["robot", "Hiwonder"],
-      description="Hiwonder robot raspberry pi hat v3 sdk",
+      description="Hiwonder raspberry pi hat v3 sdk",
       license="GPL v3 Licence",
       url="https://hiwonder.com",
       author="Hiwonder",
@@ -36,6 +36,6 @@ setup(name='rsp_robot_hat_v3',
 
       include_package_data=True,
       zip_safe=False,
-      packages=["rsp_robot_hat_v3", ],
-      package_dir={"rsp_robot_hat_v3": "./src"},
+      packages=["hw_rsp_hat_v3", ],
+      package_dir={"hw_rsp_hat_v3": "./src"},
       )

@@ -35,7 +35,6 @@ async def _run_action_set(act_path, repeat=1, lock_servos=None):
     :param lock_servos:
     :return:
     """
-
     if not os.path.exists(act_path):
         raise FileNotFoundError(act_path)
 
@@ -90,4 +89,3 @@ def _start_loop(loop_):
 
 _loop = asyncio.get_event_loop()
 threading.Thread(target=_start_loop, args=(_loop,), daemon=True).start()
-
