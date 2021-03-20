@@ -24,58 +24,78 @@ import os
 import asyncio
 import threading
 import sqlite3 as sql
-from .misc import empty_func
 from .serial_servo import set_position
+from .misc import empty_func as _empty_func
 
 
-async def _run_action_set(act_path, repeat=1, lock_servos=None):
+class ActionSet:
+    def __init__(self, path, repeat=1, lock_servos=None):
+        if not os.path.exists(path):
+            raise FileNotFoundError(path)
+        self.path = path
+        self.repeat = repeat
+        self.lock_servos = lock_servos if lock_servos else dict()
+        self.action_data = []
+
+
+async def _run_action_set(action_sets: tuple):
     """
-    :param act_path: The path of the action set you want to run
-    :param repeat: The number of times this action is repeated
-    :param lock_servos:
+    :param action_sets: The path of the action set you want to run
     :return:
     """
-    if not os.path.exists(act_path):
-        raise FileNotFoundError(act_path)
+    for action_set in action_sets:
+        # 从动作组文件中取出动作数据
+        with sql.connect(action_set.path) as ag:
+            action_data = ag.execute("select * from ActionGroup").fetchall()
+        # 对动作数据做些处理
+        # 将所有动作里面被lock的舵机的角度设为指定lock的角度
+        for id_, lock_pos in action_set.lock_servos.items():
+            for act in action_data:
+                act[1 + id_] = lock_pos
+        action_set.action_data = action_data
 
-    # 从动作组文件中取出动作数据
-    with sql.connect(act_path) as ag:
-        action_set = ag.execute("select * from ActionGroup").fetchall()
-
-    # 对动作数据做些处理
-    # 将所有动作里面被lock的舵机的角度设为指定lock的角度
-    lock_servos = lock_servos if lock_servos else dict()
-    for id_, lock_pos in lock_servos.items():
-        for act in action_set:
-            act[1 + id_] = lock_pos
-
-    # 运行动作
-    for i in range(repeat):
-        for action in action_set:
-            duration = action[1]
-            pos_set = action[2:]
-            for id_, pos in enumerate(pos_set, 1):
-                set_position(id_, pos, duration)
-            await asyncio.sleep(duration / 1000.0)
+    for action_set in action_sets:
+        for i in range(action_set.repeat):
+            for action in action_set.action_data:
+                duration = action[1]
+                pos_set = action[2:]
+                for id_, pos in enumerate(pos_set, 1):
+                    set_position(id_, pos, duration)
+                await asyncio.sleep(duration / 1000.0)
 
 
-def run_action_set(act_path, repeat=1, block=True, lock_servos=None, done_callback=empty_func):
+def run_action_set(action_set, block=True, done_callback=_empty_func):
     """
     run an action set
 
-    :param act_path: The path of the action set you want to run
-    :param repeat: The number of times this action is repeated
+    :param action_set: The path of the action set you want to run
     :param block:
-    :param lock_servos:
     :param done_callback:
     :return:
     """
     if block:
-        asyncio.run(_run_action_set(act_path, repeat, lock_servos))
+        asyncio.run(_run_action_set((action_set,)))
     else:
-        future = asyncio.run_coroutine_threadsafe(_run_action_set(act_path, repeat, lock_servos), _loop)
-        future.add_done_callback(done_callback)
-        return future
+        f = asyncio.run_coroutine_threadsafe(_run_action_set((action_set,)), _loop)
+        f.add_done_callback(done_callback)
+        return f
+
+
+def run_multi_action_sets(action_sets, block=True, done_callback=_empty_func):
+    """
+    运行多个动作组
+
+    :param action_sets: 要允许的动作组及运行
+    :param block:
+    :param done_callback:
+    :return:
+    """
+    if block:
+        asyncio.run(_run_action_set(action_sets))
+    else:
+        f = asyncio.run_coroutine_threadsafe(_run_action_set(action_sets), _loop)
+        f.add_done_callback(done_callback)
+        return f
 
 
 def _start_loop(loop_):
