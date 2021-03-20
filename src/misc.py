@@ -30,4 +30,4 @@ def empty_func(args=None):
 
 
 def set_bounds(x, x_min, x_max):
-    return x_min if x < x_min else x_max if x > x_max else x
+    return min(max(x, x_min), x_max)
